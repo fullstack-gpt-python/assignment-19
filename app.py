@@ -6,6 +6,8 @@ from langchain.tools import DuckDuckGoSearchResults
 from langchain.tools import WikipediaQueryRun
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
+import requests
+from bs4 import BeautifulSoup
 
 
 def get_assistant():
@@ -105,14 +107,23 @@ def get_wiki_results(inputs):
 
 def get_web_content(inputs):
     url = inputs["url"]
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
     try:
-        loader = WebBaseLoader([url])
-        docs = loader.load()
-        text = "\n\n".join([doc.page_content for doc in docs])
-        return text
-    except:
-        print("ERROR on get_web_content")
-        return f"Error getting content from {url}. You need to try again or use another url."
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        for header in soup.find_all(["header", "footer", "nav"]):
+            header.decompose()
+        content = soup.get_text(separator="\n", strip=True)
+
+        return content
+
+    except requests.RequestException as e:
+        print(f"ERROR on get_web_content: {e}")
+        return f"Error getting content from {url}. Use another url."
 
 
 functions_map = {
