@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain.utilities.duckduckgo_search import DuckDuckGoSearchAPIWrapper
+from langchain.utilities.wikipedia import WikipediaAPIWrapper
 import json
 from langchain.document_loaders import WebBaseLoader
 from langchain.tools import DuckDuckGoSearchResults
@@ -100,7 +100,7 @@ def get_ddg_results(inputs):
 
 def get_wiki_results(inputs):
     query = inputs["query"]
-    wrapper = DuckDuckGoSearchAPIWrapper(max_results=3)
+    wrapper = WikipediaAPIWrapper(top_k_results=3)
     wiki = WikipediaQueryRun(api_wrapper=wrapper)
     return wiki.run(query)
 
